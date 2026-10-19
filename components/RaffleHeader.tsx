@@ -35,8 +35,8 @@ function Progress({ label, value, max }: { label: string; value: number | undefi
 export function RaffleHeader({ taken, participants }: { taken?: number; participants?: number }) {
   return (
     <header className="no-print rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-      <p className="text-sm font-semibold uppercase tracking-wide text-red-700">SINATPSI</p>
-      <h1 className="text-3xl font-bold sm:text-4xl">Rifa Pro Navidad 2026</h1>
+      <p className="inline-block rounded-lg bg-red-700 px-4 py-1.5 text-2xl font-extrabold tracking-[0.2em] text-white shadow-md sm:text-4xl">SINATPSI</p>
+      <h1 className="mt-3 text-3xl font-bold sm:text-4xl">Rifa Pro Navidad 2026</h1>
       <p className="mt-2 text-slate-700">
         Cada participante elige exactamente {TICKETS_PER_PERSON} números del 1 al {TOTAL_TICKETS}. Cada
         número cuesta S/ {TICKET_PRICE_PEN}. Sorteo: {DRAW_DATE_LABEL}.
