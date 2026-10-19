@@ -6,7 +6,7 @@ import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { schema } from "@/db/schema";
 import type { AppDb } from "@/db/types";
 import { claimTicketNumbers } from "@/lib/claim";
-import { getDrawState, resetDraw, spin } from "@/lib/draw";
+import { getDrawState, listWinners, resetDraw, spin } from "@/lib/draw";
 
 const range = (from: number, to: number) => Array.from({ length: to - from + 1 }, (_, i) => from + i);
 
@@ -149,5 +149,22 @@ describe("draw (PGlite)", () => {
     await spinOk();
     await resetDraw(db);
     expect(await getDrawState(db)).toMatchObject({ currentPrize: 3, nextSpinIndex: 1, eligibleCount: 24 });
+  });
+
+  it("listWinners returns only winning spins, ordered by prize rank", async () => {
+    expect(await listWinners(db)).toEqual([]);
+    for (let i = 0; i < 4; i++) await spinOk(); // 3rd prize complete + 2nd prize spin 1
+    const winners = await listWinners(db);
+    expect(winners).toHaveLength(1);
+    const state = await getDrawState(db);
+    expect(state.spins).toHaveLength(4);
+    const winnerSpin = state.spins.find((s) => s.isWinner)!;
+    expect(winners[0]).toMatchObject({
+      prizeRank: 3,
+      number: winnerSpin.number,
+      participantName: winnerSpin.participantName,
+    });
+    for (let i = 0; i < 5; i++) await spinOk();
+    expect((await listWinners(db)).map((w) => w.prizeRank)).toEqual([1, 2, 3]);
   });
 });

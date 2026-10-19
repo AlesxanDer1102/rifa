@@ -95,6 +95,28 @@ export async function getDrawState(db: AppDb): Promise<DrawState> {
   return { spins, currentPrize: prize, nextSpinIndex: nextSpin, eligibleCount };
 }
 
+export interface Winner {
+  prizeRank: PrizeRank;
+  number: number;
+  participantName: string;
+  createdAt: Date;
+}
+
+/** Public-safe view: only winning spins (the 3rd of each round), never the intermediate draws. */
+export async function listWinners(db: AppDb): Promise<Winner[]> {
+  const rows = await db
+    .select({
+      prizeRank: drawSpins.prizeRank,
+      number: drawSpins.number,
+      participantName: drawSpins.participantName,
+      createdAt: drawSpins.createdAt,
+    })
+    .from(drawSpins)
+    .where(eq(drawSpins.isWinner, true))
+    .orderBy(asc(drawSpins.prizeRank));
+  return rows.map((r) => ({ ...r, prizeRank: r.prizeRank as PrizeRank }));
+}
+
 /**
  * Performs ONE server-side spin. Randomness is injected for tests; the default
  * is a CSPRNG. The (prize_rank, spin_index) unique constraint turns concurrent

@@ -43,6 +43,12 @@ export default async function AdminPage() {
             Ver disponibilidad
           </Link>
           <Link
+            href="/ganadores"
+            className="rounded-md border border-red-700 px-4 py-2 text-sm font-medium text-red-800 hover:bg-red-50"
+          >
+            Ver ganadores
+          </Link>
+          <Link
             href="/admin/sorteo"
             className="rounded-md border border-amber-600 px-4 py-2 text-sm font-medium text-amber-800 hover:bg-amber-50"
           >
