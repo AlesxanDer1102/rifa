@@ -17,7 +17,7 @@ export default async function WinnersPage() {
     <main className="mx-auto w-full max-w-3xl flex-1 space-y-4 px-3 py-6 sm:px-6">
       <WinnersAutoRefresh active={!complete} />
       <header className="rounded-xl bg-white p-5 text-center shadow-sm ring-1 ring-slate-200">
-        <p className="inline-block rounded-lg bg-red-700 px-4 py-1.5 text-2xl font-extrabold tracking-[0.2em] text-white shadow-md sm:text-4xl">SINATPSI</p>
+        <p className="inline-block rounded-lg bg-emerald-700 px-4 py-1.5 text-2xl font-extrabold tracking-[0.2em] text-white shadow-md sm:text-4xl">SINATPSI</p>
         <h1 className="mt-3 text-3xl font-bold sm:text-4xl">Ganadores de la Rifa Pro Navidad 2026</h1>
         <p className="mt-2 text-slate-700">
           {winners.length === 0
