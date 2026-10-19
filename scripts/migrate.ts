@@ -17,10 +17,18 @@ if (!url) {
   process.exit(1);
 }
 
-const client = postgres(url, { max: 1 });
-try {
-  await migrate(drizzle(client), { migrationsFolder: "./drizzle" });
-  console.log("Migrations applied.");
-} finally {
-  await client.end();
+// Wrapped in a function: the package is CommonJS, where top-level await is unsupported.
+async function main(dbUrl: string) {
+  const client = postgres(dbUrl, { max: 1 });
+  try {
+    await migrate(drizzle(client), { migrationsFolder: "./drizzle" });
+    console.log("Migrations applied.");
+  } finally {
+    await client.end();
+  }
 }
+
+main(url).catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

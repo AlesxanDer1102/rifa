@@ -14,12 +14,16 @@ const globalForDb = globalThis as unknown as { __rifaDb?: AppDb };
  * `prepare: false` is REQUIRED: production connects through Supabase's
  * transaction pooler (Supavisor, port 6543), which does not support
  * prepared statements.
+ *
+ * `max` must stay above the expected concurrent queries per instance:
+ * postgres.js only pipelines onto a busy connection once all `max` are in use,
+ * and pipelined queries hang forever through Supavisor's transaction pooler.
  */
 export function getDb(): AppDb {
   if (!globalForDb.__rifaDb) {
     const client = postgres(getEnv().DATABASE_URL, {
       prepare: false,
-      max: 1,
+      max: 10,
       idle_timeout: 20,
       connect_timeout: 10,
     });

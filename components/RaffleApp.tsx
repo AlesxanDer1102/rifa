@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useReducer, useState, useSyncExternalStore } from "react";
 import useSWR from "swr";
 import { claimTickets, verifyAccessCode } from "@/app/actions";
@@ -222,12 +223,23 @@ export function RaffleApp() {
   }
 
   const header = <RaffleHeader taken={data?.taken.length} participants={data?.participants} />;
+  const availabilityLink = (
+    <div className="no-print mx-auto max-w-xl">
+      <Link
+        href="/disponibilidad"
+        className="block w-full rounded-md border-2 border-emerald-700 bg-white px-4 py-3 text-center font-semibold text-emerald-800 hover:bg-emerald-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
+      >
+        Ver números ocupados y disponibles
+      </Link>
+    </div>
+  );
 
   if (receipt) {
     return (
       <div className="space-y-6">
         {header}
         <Receipt receipt={receipt} returning={!justClaimed} />
+        {availabilityLink}
         <div className="no-print text-center">
           <button type="button" onClick={onForgetReceipt} className="text-sm text-slate-500 underline">
             Registrar a otra persona desde este dispositivo
@@ -247,6 +259,7 @@ export function RaffleApp() {
             Ya no se aceptan nuevos registros. Gracias por participar en la Rifa Pro Navidad 2026.
           </p>
         </section>
+        {availabilityLink}
       </div>
     );
   }
@@ -316,6 +329,7 @@ export function RaffleApp() {
             {checking ? "Verificando..." : "Continuar y elegir números"}
           </button>
         </form>
+        {availabilityLink}
       </div>
     );
   }
