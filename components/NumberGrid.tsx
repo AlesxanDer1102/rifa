@@ -19,9 +19,9 @@ const STATUS_LABEL: Record<CellStatus, string> = {
 };
 
 const STATUS_CLASS: Record<CellStatus, string> = {
-  free: "border-slate-300 bg-white text-slate-800 hover:border-emerald-600 hover:bg-emerald-50",
+  free: "border-slate-300 bg-white text-slate-800 hover:border-brand-600 hover:bg-brand-50",
   taken: "border-slate-200 bg-slate-200 text-slate-400 line-through cursor-not-allowed",
-  selected: "border-emerald-700 bg-emerald-600 text-white font-semibold",
+  selected: "border-brand-700 bg-brand-600 text-white font-semibold",
   lost: "border-red-600 bg-red-100 text-red-700 line-through cursor-not-allowed",
 };
 
@@ -36,7 +36,7 @@ const NumberCell = memo(function NumberCell({ n, status, locked, onToggle }: Cel
       aria-label={`Número ${n}, ${STATUS_LABEL[status]}`}
       disabled={blocked}
       onClick={() => onToggle(n)}
-      className={`h-10 rounded-md border text-sm tabular-nums transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700 ${STATUS_CLASS[status]} ${
+      className={`h-10 rounded-md border text-sm tabular-nums transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700 ${STATUS_CLASS[status]} ${
         blocked && !unavailable ? "opacity-50" : ""
       }`}
     >

@@ -11,9 +11,9 @@ export function Receipt({ receipt, returning }: { receipt: StoredReceipt; return
   return (
     <section
       aria-labelledby="receipt-title"
-      className="mx-auto max-w-xl rounded-xl border border-emerald-300 bg-white p-6 shadow-sm"
+      className="mx-auto max-w-xl rounded-xl border border-brand-300 bg-white p-6 shadow-sm"
     >
-      <p className="text-sm font-medium text-emerald-700">
+      <p className="text-sm font-medium text-brand-700">
         {returning ? "Ya registraste tus números" : "Registro exitoso"}
       </p>
       <h2 id="receipt-title" className="mt-1 text-2xl font-bold">
@@ -40,7 +40,7 @@ export function Receipt({ receipt, returning }: { receipt: StoredReceipt; return
         {receipt.numbers.map((n) => (
           <li
             key={n}
-            className="rounded-md border border-emerald-600 bg-emerald-50 py-2 text-center font-semibold tabular-nums"
+            className="rounded-md border border-brand-600 bg-brand-50 py-2 text-center font-semibold tabular-nums"
           >
             {n}
           </li>
@@ -53,7 +53,7 @@ export function Receipt({ receipt, returning }: { receipt: StoredReceipt; return
       <button
         type="button"
         onClick={() => window.print()}
-        className="no-print mt-5 rounded-md bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800"
+        className="no-print mt-5 rounded-md bg-brand-700 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-800"
       >
         Imprimir / guardar
       </button>

@@ -38,7 +38,7 @@ export default async function AdminPage() {
         <div className="flex flex-wrap gap-2">
           <Link
             href="/disponibilidad"
-            className="rounded-md border border-emerald-700 px-4 py-2 text-sm font-medium text-emerald-800 hover:bg-emerald-50"
+            className="rounded-md border border-brand-700 px-4 py-2 text-sm font-medium text-brand-800 hover:bg-brand-50"
           >
             Ver disponibilidad
           </Link>
@@ -56,7 +56,7 @@ export default async function AdminPage() {
           </Link>
           <a
             href="/admin/export"
-            className="rounded-md bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800"
+            className="rounded-md bg-brand-700 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-800"
           >
             Exportar CSV
           </a>

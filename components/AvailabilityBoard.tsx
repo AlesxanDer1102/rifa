@@ -51,7 +51,7 @@ export function AvailabilityBoard() {
         className={`flex h-10 items-center justify-center rounded-md border text-sm tabular-nums ${
           isTaken
             ? "border-slate-200 bg-slate-200 text-slate-400 line-through"
-            : "border-emerald-300 bg-emerald-50 text-emerald-900"
+            : "border-brand-300 bg-brand-50 text-brand-900"
         }`}
       >
         {n}
@@ -61,7 +61,7 @@ export function AvailabilityBoard() {
 
   const tabClass = (active: boolean) =>
     `rounded-md border px-3 py-1.5 text-sm whitespace-nowrap ${
-      active ? "border-emerald-700 bg-emerald-700 text-white" : "border-slate-300 bg-white hover:bg-slate-100"
+      active ? "border-brand-700 bg-brand-700 text-white" : "border-slate-300 bg-white hover:bg-slate-100"
     }`;
 
   return (
@@ -73,7 +73,7 @@ export function AvailabilityBoard() {
           <h2 className="text-xl font-semibold">Disponibilidad de números</h2>
           <ul className="flex gap-4 text-sm" aria-live="polite">
             <li className="flex items-center gap-2">
-              <span aria-hidden className="h-4 w-4 rounded border border-emerald-300 bg-emerald-50" />
+              <span aria-hidden className="h-4 w-4 rounded border border-brand-300 bg-brand-50" />
               Libres: <strong className="tabular-nums">{freeCount ?? "…"}</strong>
             </li>
             <li className="flex items-center gap-2">
@@ -127,7 +127,7 @@ export function AvailabilityBoard() {
           <div className="mx-auto max-w-5xl">
             <Link
               href="/"
-              className="block w-full rounded-md bg-emerald-700 px-4 py-3 text-center font-semibold text-white hover:bg-emerald-800"
+              className="block w-full rounded-md bg-brand-700 px-4 py-3 text-center font-semibold text-white hover:bg-brand-800"
             >
               Registrar mis números
             </Link>

@@ -12,6 +12,8 @@ export const metadata: Metadata = {
   title: "Rifa Pro Navidad 2026 | SINATPSI",
   description: "Elige tus 12 números para la Rifa Pro Navidad 2026 de SINATPSI.",
   robots: { index: false, follow: false },
+  icons: { icon: "/logo.jpeg", apple: "/logo.jpeg" },
+  openGraph: { images: ["/logo.jpeg"] },
 };
 
 export const viewport: Viewport = {

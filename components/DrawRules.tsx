@@ -68,7 +68,7 @@ export function DrawRules() {
               <ol className="mt-2 space-y-1">
                 {DRAW_ORDER.map((p, i) => (
                   <li key={p.place} className="flex gap-2">
-                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-700 text-xs font-bold text-white">
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-700 text-xs font-bold text-white">
                       {i + 1}
                     </span>
                     <span>
@@ -122,7 +122,7 @@ export function DrawRules() {
             <button
               type="button"
               onClick={close}
-              className="rounded-md bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800"
+              className="rounded-md bg-brand-700 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-800"
             >
               Entendido
             </button>

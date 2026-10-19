@@ -41,7 +41,7 @@ const blockRange = (i: number): [number, number] => [
 ];
 
 const inputClass =
-  "w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-base focus-visible:outline-2 focus-visible:outline-emerald-700";
+  "w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-base focus-visible:outline-2 focus-visible:outline-brand-700";
 
 export function RaffleApp() {
   const [selection, dispatch] = useReducer(selectionReducer, initialSelection);
@@ -227,7 +227,7 @@ export function RaffleApp() {
     <div className="no-print mx-auto max-w-xl">
       <Link
         href="/disponibilidad"
-        className="block w-full rounded-md border-2 border-emerald-700 bg-white px-4 py-3 text-center font-semibold text-emerald-800 hover:bg-emerald-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
+        className="block w-full rounded-md border-2 border-brand-700 bg-white px-4 py-3 text-center font-semibold text-brand-800 hover:bg-brand-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700"
       >
         Ver números ocupados y disponibles
       </Link>
@@ -324,7 +324,7 @@ export function RaffleApp() {
           <button
             type="submit"
             disabled={checking}
-            className="w-full rounded-md bg-emerald-700 px-4 py-3 font-semibold text-white hover:bg-emerald-800 disabled:opacity-50"
+            className="w-full rounded-md bg-brand-700 px-4 py-3 font-semibold text-white hover:bg-brand-800 disabled:opacity-50"
           >
             {checking ? "Verificando..." : "Continuar y elegir números"}
           </button>
@@ -337,7 +337,7 @@ export function RaffleApp() {
   const [rangeFrom, rangeTo] = block === "all" ? [1, TOTAL_TICKETS] : blockRange(block);
   const tabClass = (active: boolean) =>
     `rounded-md border px-3 py-1.5 text-sm whitespace-nowrap ${
-      active ? "border-emerald-700 bg-emerald-700 text-white" : "border-slate-300 bg-white hover:bg-slate-100"
+      active ? "border-brand-700 bg-brand-700 text-white" : "border-slate-300 bg-white hover:bg-slate-100"
     }`;
 
   return (
@@ -358,7 +358,7 @@ export function RaffleApp() {
           <p
             aria-live="polite"
             className={`rounded-full px-4 py-1 text-lg font-bold tabular-nums ${
-              count === TICKETS_PER_PERSON ? "bg-emerald-100 text-emerald-800" : "bg-slate-100"
+              count === TICKETS_PER_PERSON ? "bg-brand-100 text-brand-800" : "bg-slate-100"
             }`}
           >
             {count} / {TICKETS_PER_PERSON}
@@ -401,7 +401,7 @@ export function RaffleApp() {
             type="button"
             onClick={onRandomFill}
             disabled={limitReached || !data}
-            className="rounded-md border border-emerald-700 px-3 py-2 text-sm font-medium text-emerald-800 hover:bg-emerald-50 disabled:opacity-50"
+            className="rounded-md border border-brand-700 px-3 py-2 text-sm font-medium text-brand-800 hover:bg-brand-50 disabled:opacity-50"
           >
             Completar al azar
           </button>
@@ -442,7 +442,7 @@ export function RaffleApp() {
 
         <ul className="flex flex-wrap gap-4 text-xs text-slate-600" aria-label="Leyenda">
           <li className="flex items-center gap-1.5"><span className="inline-block size-4 rounded border border-slate-300 bg-white" /> Libre</li>
-          <li className="flex items-center gap-1.5"><span className="inline-block size-4 rounded border border-emerald-700 bg-emerald-600" /> Tu selección</li>
+          <li className="flex items-center gap-1.5"><span className="inline-block size-4 rounded border border-brand-700 bg-brand-600" /> Tu selección</li>
           <li className="flex items-center gap-1.5"><span className="inline-block size-4 rounded border border-slate-200 bg-slate-200" /> Ocupado</li>
           <li className="flex items-center gap-1.5"><span className="inline-block size-4 rounded border border-red-600 bg-red-100" /> Ya no disponible</li>
         </ul>
@@ -473,7 +473,7 @@ export function RaffleApp() {
             type="button"
             disabled={count !== TICKETS_PER_PERSON}
             onClick={() => setConfirmOpen(true)}
-            className="rounded-md bg-emerald-700 px-5 py-2.5 font-semibold text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-40"
+            className="rounded-md bg-brand-700 px-5 py-2.5 font-semibold text-white hover:bg-brand-800 disabled:cursor-not-allowed disabled:opacity-40"
           >
             Confirmar mis números
           </button>

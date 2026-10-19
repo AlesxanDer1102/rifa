@@ -6,6 +6,7 @@ import {
   TOTAL_PARTICIPANTS,
   TOTAL_TICKETS,
 } from "@/lib/constants";
+import Image from "next/image";
 import { DrawRules } from "./DrawRules";
 
 function Progress({ label, value, max }: { label: string; value: number | undefined; max: number }) {
@@ -26,7 +27,7 @@ function Progress({ label, value, max }: { label: string; value: number | undefi
         aria-valuenow={value ?? 0}
         className="mt-1 h-2.5 overflow-hidden rounded-full bg-slate-200"
       >
-        <div className="h-full rounded-full bg-emerald-600 transition-all" style={{ width: `${pct}%` }} />
+        <div className="h-full rounded-full bg-brand-600 transition-all" style={{ width: `${pct}%` }} />
       </div>
     </div>
   );
@@ -35,8 +36,15 @@ function Progress({ label, value, max }: { label: string; value: number | undefi
 export function RaffleHeader({ taken, participants }: { taken?: number; participants?: number }) {
   return (
     <header className="no-print rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-      <p className="inline-block rounded-lg bg-emerald-700 px-4 py-1.5 text-2xl font-extrabold tracking-[0.2em] text-white shadow-md sm:text-4xl">SINATPSI</p>
-      <h1 className="mt-3 text-3xl font-bold sm:text-4xl">Rifa Pro Navidad 2026</h1>
+      <Image
+        src="/logo.jpeg"
+        alt="SINATPSI - Sindicato Nacional de Trabajadores del Programa Subsectorial de Irrigaciones PSI - MIDAGRI"
+        width={960}
+        height={780}
+        priority
+        className="h-auto w-40 sm:w-52"
+      />
+      <h1 className="mt-3 text-3xl font-bold text-brand-800 sm:text-4xl">Rifa Pro Navidad 2026</h1>
       <p className="mt-2 text-slate-700">
         Cada participante elige exactamente {TICKETS_PER_PERSON} números del 1 al {TOTAL_TICKETS}. Cada
         número cuesta S/ {TICKET_PRICE_PEN}. Sorteo: {DRAW_DATE_LABEL}.

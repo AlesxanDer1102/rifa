@@ -208,7 +208,7 @@ export function DrawStage({ initialSpins, eligibleCount }: Props) {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
-        <section className="relative overflow-hidden rounded-3xl bg-linear-to-br from-red-800 via-red-900 to-emerald-950 px-4 py-6 text-white shadow-xl ring-1 ring-amber-300/40 sm:px-8 sm:py-10">
+        <section className="relative overflow-hidden rounded-3xl bg-linear-to-br from-red-800 via-red-900 to-brand-950 px-4 py-6 text-white shadow-xl ring-1 ring-amber-300/40 sm:px-8 sm:py-10">
           <div aria-hidden="true" className="pointer-events-none absolute inset-0">
             {[8, 22, 38, 55, 70, 86, 15, 62, 92].map((left, i) => (
               <span
@@ -295,7 +295,7 @@ export function DrawStage({ initialSpins, eligibleCount }: Props) {
                     <button
                       type="button"
                       onClick={onContinue}
-                      className="w-full rounded-full bg-emerald-700 px-5 py-3 text-base font-bold text-white hover:bg-emerald-800"
+                      className="w-full rounded-full bg-brand-700 px-5 py-3 text-base font-bold text-white hover:bg-brand-800"
                     >
                       {winnerSpin.prizeRank === 1
                         ? "Ver resumen final"
