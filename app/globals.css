@@ -21,6 +21,43 @@ dialog::backdrop {
   background: rgb(15 23 42 / 0.55);
 }
 
+@keyframes draw-pop {
+  0% {
+    transform: scale(0.85);
+  }
+  60% {
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes draw-twinkle {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+.draw-pop {
+  animation: draw-pop 0.5s ease-out;
+}
+
+.draw-twinkle {
+  animation: draw-twinkle 2.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .draw-pop,
+  .draw-twinkle {
+    animation: none;
+  }
+}
+
 @media print {
   .no-print {
     display: none !important;

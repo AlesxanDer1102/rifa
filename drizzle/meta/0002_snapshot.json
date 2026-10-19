@@ -1,0 +1,228 @@
+{
+  "id": "a11d76d6-a4e2-4655-9797-1dac033b567a",
+  "prevId": "1a24cf4a-23b7-4264-b98f-a19229b594ca",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.draw_spins": {
+      "name": "draw_spins",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "draw_spins_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "prize_rank": {
+          "name": "prize_rank",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "spin_index": {
+          "name": "spin_index",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "number": {
+          "name": "number",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "participant_name": {
+          "name": "participant_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_winner": {
+          "name": "is_winner",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "draw_spins_prize_spin_unique": {
+          "name": "draw_spins_prize_spin_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "prize_rank",
+            "spin_index"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "draw_spins_prize_rank_range": {
+          "name": "draw_spins_prize_rank_range",
+          "value": "\"draw_spins\".\"prize_rank\" between 1 and 3"
+        },
+        "draw_spins_spin_index_range": {
+          "name": "draw_spins_spin_index_range",
+          "value": "\"draw_spins\".\"spin_index\" between 1 and 3"
+        },
+        "draw_spins_number_range": {
+          "name": "draw_spins_number_range",
+          "value": "\"draw_spins\".\"number\" between 1 and 1068"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.participants": {
+      "name": "participants",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "first_name": {
+          "name": "first_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "last_name": {
+          "name": "last_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name_key": {
+          "name": "name_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "participants_name_key_unique": {
+          "name": "participants_name_key_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "name_key"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.tickets": {
+      "name": "tickets",
+      "schema": "",
+      "columns": {
+        "number": {
+          "name": "number",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "participant_id": {
+          "name": "participant_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "tickets_participant_id_idx": {
+          "name": "tickets_participant_id_idx",
+          "columns": [
+            {
+              "expression": "participant_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "tickets_participant_id_participants_id_fk": {
+          "name": "tickets_participant_id_participants_id_fk",
+          "tableFrom": "tickets",
+          "tableTo": "participants",
+          "columnsFrom": [
+            "participant_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "tickets_number_range": {
+          "name": "tickets_number_range",
+          "value": "\"tickets\".\"number\" between 1 and 1068"
+        }
+      },
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

@@ -15,6 +15,13 @@
       "when": 1792275797095,
       "tag": "0001_enable_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792376672104,
+      "tag": "0002_wealthy_electro",
+      "breakpoints": true
     }
   ]
 }
