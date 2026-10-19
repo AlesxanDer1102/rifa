@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getDb } from "@/db/client";
+import { DrawRules } from "@/components/DrawRules";
 import { WinnersAutoRefresh } from "@/components/WinnersAutoRefresh";
 import { DRAW_DATE_LABEL, PRIZES } from "@/lib/constants";
 import { listWinners } from "@/lib/draw";
@@ -25,6 +26,9 @@ export default async function WinnersPage() {
               ? "¡Felicitaciones a todos los ganadores!"
               : "El sorteo está en curso. Esta página se actualiza sola."}
         </p>
+        <div className="mt-4 text-left">
+          <DrawRules />
+        </div>
       </header>
 
       <ol className="space-y-3">

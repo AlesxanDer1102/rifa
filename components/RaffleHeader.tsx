@@ -6,6 +6,7 @@ import {
   TOTAL_PARTICIPANTS,
   TOTAL_TICKETS,
 } from "@/lib/constants";
+import { DrawRules } from "./DrawRules";
 
 function Progress({ label, value, max }: { label: string; value: number | undefined; max: number }) {
   const pct = value === undefined ? 0 : Math.min(100, Math.round((value / max) * 100));
@@ -48,6 +49,9 @@ export function RaffleHeader({ taken, participants }: { taken?: number; particip
           </li>
         ))}
       </ul>
+      <div className="mt-4">
+        <DrawRules />
+      </div>
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <Progress label="Números ocupados" value={taken} max={TOTAL_TICKETS} />
         <Progress label="Participantes" value={participants} max={TOTAL_PARTICIPANTS} />
