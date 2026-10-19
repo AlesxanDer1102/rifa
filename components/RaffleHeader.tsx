@@ -36,19 +36,23 @@ function Progress({ label, value, max }: { label: string; value: number | undefi
 export function RaffleHeader({ taken, participants }: { taken?: number; participants?: number }) {
   return (
     <header className="no-print rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-      <Image
-        src="/logo.jpeg"
-        alt="SINATPSI - Sindicato Nacional de Trabajadores del Programa Subsectorial de Irrigaciones PSI - MIDAGRI"
-        width={960}
-        height={780}
-        priority
-        className="h-auto w-40 sm:w-52"
-      />
-      <h1 className="mt-3 text-3xl font-bold text-brand-800 sm:text-4xl">Rifa Pro Navidad 2026</h1>
-      <p className="mt-2 text-slate-700">
-        Cada participante elige exactamente {TICKETS_PER_PERSON} números del 1 al {TOTAL_TICKETS}. Cada
-        número cuesta S/ {TICKET_PRICE_PEN}. Sorteo: {DRAW_DATE_LABEL}.
-      </p>
+      <div className="flex items-center gap-4 sm:gap-6">
+        <Image
+          src="/logo.jpeg"
+          alt="SINATPSI - Sindicato Nacional de Trabajadores del Programa Subsectorial de Irrigaciones PSI - MIDAGRI"
+          width={960}
+          height={780}
+          priority
+          className="h-auto w-24 shrink-0 sm:w-44"
+        />
+        <div className="min-w-0">
+          <h1 className="text-2xl font-bold text-brand-800 sm:text-4xl">Rifa Pro Navidad 2026</h1>
+          <p className="mt-2 text-sm text-slate-700 sm:text-base">
+            Cada participante elige exactamente {TICKETS_PER_PERSON} números del 1 al {TOTAL_TICKETS}. Cada
+            número cuesta S/ {TICKET_PRICE_PEN}. Sorteo: {DRAW_DATE_LABEL}.
+          </p>
+        </div>
+      </div>
       <ul className="mt-3 grid gap-2 sm:grid-cols-3">
         {PRIZES.map((p) => (
           <li key={p.place} className="rounded-lg bg-slate-50 px-3 py-2 ring-1 ring-slate-200">
