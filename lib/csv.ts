@@ -22,10 +22,10 @@ export function csvCell(value: string): string {
 
 /** UTF-8 CSV with BOM so Excel detects the encoding. */
 export function buildParticipantsCsv(rows: ParticipantWithNumbers[]): string {
-  const lines = [["Nombres", "Apellidos", "Números", "Fecha"].map(csvCell).join(",")];
+  const lines = [["Nombre completo", "Oficina", "Unidad", "Números", "Fecha"].map(csvCell).join(",")];
   for (const r of rows) {
     lines.push(
-      [r.firstName, r.lastName, r.numbers.join(", "), formatLima(r.createdAt)].map(csvCell).join(","),
+      [r.fullName, r.office, r.unit, r.numbers.join(", "), formatLima(r.createdAt)].map(csvCell).join(","),
     );
   }
   return `﻿${lines.join("\r\n")}\r\n`;

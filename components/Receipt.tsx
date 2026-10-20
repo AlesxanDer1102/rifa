@@ -24,7 +24,7 @@ export function Receipt({ receipt, returning }: { receipt: StoredReceipt; return
         <div>
           <dt className="font-medium text-slate-500">Participante</dt>
           <dd className="text-base font-semibold">
-            {receipt.firstName} {receipt.lastName}
+            {receipt.fullName}
           </dd>
         </div>
         <div>

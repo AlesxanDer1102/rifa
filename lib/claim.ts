@@ -1,20 +1,20 @@
 import { count, eq, inArray, sql } from "drizzle-orm";
 import type { AppDb } from "@/db/types";
-import { participants, tickets } from "@/db/schema";
-import { cleanName, makeNameKey } from "./name";
+import { members, participants, tickets } from "@/db/schema";
+import { verifyMemberToken } from "./member-token";
 import { claimSchema } from "./schemas";
 
 export type ClaimResult =
-  | { ok: true; participant: { firstName: string; lastName: string }; numbers: number[] }
+  | { ok: true; participant: { fullName: string }; numbers: number[] }
   | { ok: false; reason: "conflict"; taken: number[] }
   | {
       ok: false;
-      reason: "invalid" | "bad_code" | "duplicate_name" | "closed" | "error";
+      reason: "invalid" | "unauthorized" | "already_participated" | "closed" | "error";
       message?: string;
     };
 
 const UNIQUE_VIOLATION = "23505";
-const NAME_KEY_CONSTRAINT = "participants_name_key_unique";
+const MEMBER_UNIQUE_CONSTRAINT = "participants_member_id_unique";
 
 /** Drizzle may wrap driver errors (`cause`); walk the chain looking for a pg error. */
 export function findPgError(err: unknown): { code?: string; constraint?: string } | undefined {
@@ -41,33 +41,40 @@ export function findPgError(err: unknown): { code?: string; constraint?: string 
 }
 
 /**
- * Atomically registers a participant and their tickets in ONE SQL statement.
- * Any unique violation (name or ticket number) aborts the whole statement, so
- * no orphan participant and no partial set of tickets can ever be stored.
+ * Atomically registers a member as a participant and stores their tickets in
+ * ONE SQL statement. Any unique violation (member already participated, or a
+ * ticket number taken) aborts the whole statement, so no orphan participant
+ * and no partial set of tickets can ever be stored. The identity comes from
+ * the member row; callers never supply a name.
  */
 export async function claimTicketNumbers(db: AppDb, input: unknown): Promise<ClaimResult> {
   const parsed = claimSchema.safeParse(input);
   if (!parsed.success) {
     return { ok: false, reason: "invalid", message: parsed.error.issues[0]?.message };
   }
-  const firstName = cleanName(parsed.data.firstName);
-  const lastName = cleanName(parsed.data.lastName);
+  const { memberId } = parsed.data;
   const numbers = [...parsed.data.numbers].sort((a, b) => a - b);
-  const nameKey = makeNameKey(firstName, lastName);
   // Validated integers only, so building the array literal is injection-safe.
   const numbersLiteral = `{${numbers.join(",")}}`;
 
   try {
+    const [member] = await db
+      .select({ fullName: members.fullName })
+      .from(members)
+      .where(eq(members.id, memberId))
+      .limit(1);
+    if (!member) return { ok: false, reason: "unauthorized" };
+
     await db.execute(sql`
       WITH p AS (
-        INSERT INTO participants (first_name, last_name, name_key)
-        VALUES (${firstName}, ${lastName}, ${nameKey})
+        INSERT INTO participants (member_id)
+        VALUES (${memberId})
         RETURNING id
       )
       INSERT INTO tickets (number, participant_id)
       SELECT unnest(${numbersLiteral}::int[]), p.id FROM p
     `);
-    return { ok: true, participant: { firstName, lastName }, numbers };
+    return { ok: true, participant: { fullName: member.fullName }, numbers };
   } catch (err) {
     const pg = findPgError(err);
     if (pg?.code !== UNIQUE_VIOLATION) {
@@ -75,23 +82,36 @@ export async function claimTicketNumbers(db: AppDb, input: unknown): Promise<Cla
       return { ok: false, reason: "error" };
     }
     try {
-      if (pg.constraint === NAME_KEY_CONSTRAINT) {
-        return { ok: false, reason: "duplicate_name" };
+      if (pg.constraint === MEMBER_UNIQUE_CONSTRAINT) {
+        return { ok: false, reason: "already_participated" };
       }
       const taken = await findTaken(db, numbers);
       if (taken.length > 0) return { ok: false, reason: "conflict", taken };
       const existing = await db
         .select({ id: participants.id })
         .from(participants)
-        .where(eq(participants.nameKey, nameKey))
+        .where(eq(participants.memberId, memberId))
         .limit(1);
-      if (existing.length > 0) return { ok: false, reason: "duplicate_name" };
+      if (existing.length > 0) return { ok: false, reason: "already_participated" };
       return { ok: false, reason: "error" };
     } catch (lookupErr) {
       console.error("claimTicketNumbers conflict lookup failed", lookupErr);
       return { ok: false, reason: "error" };
     }
   }
+}
+
+/**
+ * Claim gated by the signed member-session token: the member id is taken from
+ * the token only, so a client can never claim on behalf of someone else.
+ */
+export async function claimWithSession(
+  db: AppDb,
+  input: { token: string | undefined; secret: string; numbers: unknown; now?: number },
+): Promise<ClaimResult> {
+  const memberId = verifyMemberToken(input.token, input.secret, input.now);
+  if (!memberId) return { ok: false, reason: "unauthorized" };
+  return claimTicketNumbers(db, { memberId, numbers: input.numbers });
 }
 
 async function findTaken(db: AppDb, numbers: number[]): Promise<number[]> {
@@ -118,15 +138,26 @@ export async function getTicketsSnapshot(db: AppDb): Promise<TicketsSnapshot> {
 
 export interface ParticipantWithNumbers {
   id: string;
-  firstName: string;
-  lastName: string;
+  fullName: string;
+  office: string;
+  unit: string;
   numbers: number[];
   createdAt: Date;
 }
 
 export async function listParticipants(db: AppDb): Promise<ParticipantWithNumbers[]> {
   const [people, rows] = await Promise.all([
-    db.select().from(participants).orderBy(participants.createdAt),
+    db
+      .select({
+        id: participants.id,
+        fullName: members.fullName,
+        office: members.office,
+        unit: members.unit,
+        createdAt: participants.createdAt,
+      })
+      .from(participants)
+      .innerJoin(members, eq(participants.memberId, members.id))
+      .orderBy(participants.createdAt),
     db
       .select({ number: tickets.number, participantId: tickets.participantId })
       .from(tickets)
@@ -138,16 +169,13 @@ export async function listParticipants(db: AppDb): Promise<ParticipantWithNumber
     if (list) list.push(r.number);
     else byPerson.set(r.participantId, [r.number]);
   }
-  return people.map((p) => ({
-    id: p.id,
-    firstName: p.firstName,
-    lastName: p.lastName,
-    numbers: byPerson.get(p.id) ?? [],
-    createdAt: p.createdAt,
-  }));
+  return people.map((p) => ({ ...p, numbers: byPerson.get(p.id) ?? [] }));
 }
 
-/** Deletes the participant; tickets are freed through ON DELETE CASCADE. */
+/**
+ * Deletes the participant; tickets are freed through ON DELETE CASCADE. The
+ * member row stays, so the member can participate again.
+ */
 export async function releaseParticipant(db: AppDb, id: string): Promise<boolean> {
   const deleted = await db
     .delete(participants)

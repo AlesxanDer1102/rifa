@@ -1,7 +1,7 @@
 import { randomInt as cryptoRandomInt } from "node:crypto";
 import { asc, eq } from "drizzle-orm";
 import type { AppDb } from "@/db/types";
-import { drawSpins, participants, tickets } from "@/db/schema";
+import { drawSpins, members, participants, tickets } from "@/db/schema";
 import { findPgError } from "./claim";
 
 export type PrizeRank = 1 | 2 | 3;
@@ -77,15 +77,15 @@ async function loadEligible(
   const rows = await db
     .select({
       number: tickets.number,
-      firstName: participants.firstName,
-      lastName: participants.lastName,
+      fullName: members.fullName,
     })
     .from(tickets)
     .innerJoin(participants, eq(tickets.participantId, participants.id))
+    .innerJoin(members, eq(participants.memberId, members.id))
     .orderBy(asc(tickets.number));
   return rows
     .filter((r) => !excluded.has(r.number))
-    .map((r) => ({ number: r.number, name: `${r.firstName} ${r.lastName}` }));
+    .map((r) => ({ number: r.number, name: r.fullName }));
 }
 
 export async function getDrawState(db: AppDb): Promise<DrawState> {

@@ -24,8 +24,8 @@ export default async function AdminPage() {
   const rows = await listParticipants(getDb());
   const serialized = rows.map((r) => ({
     id: r.id,
-    firstName: r.firstName,
-    lastName: r.lastName,
+    fullName: r.fullName,
+    office: r.office,
     numbers: r.numbers,
     createdAt: formatLima(r.createdAt),
   }));

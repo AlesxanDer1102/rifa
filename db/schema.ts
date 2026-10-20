@@ -11,13 +11,47 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
-export const participants = pgTable("participants", {
+/** Closed roster of eligible SINATPSI members. The DNI is never stored, only its keyed hash. */
+export const members = pgTable("members", {
   id: uuid("id").primaryKey().defaultRandom(),
-  firstName: text("first_name").notNull(),
-  lastName: text("last_name").notNull(),
-  nameKey: text("name_key").notNull().unique(),
+  fullName: text("full_name").notNull(),
+  office: text("office").notNull(),
+  unit: text("unit").notNull(),
+  /** HMAC-SHA256(DNI_PEPPER, dni), hex. */
+  dniHash: text("dni_hash").notNull().unique(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+/** One row per member who claimed numbers; the UNIQUE member_id enforces "at most once". */
+export const participants = pgTable(
+  "participants",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    memberId: uuid("member_id")
+      .notNull()
+      .references(() => members.id, { onDelete: "restrict" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [unique("participants_member_id_unique").on(t.memberId)],
+);
+
+/** Failed/in-flight DNI verification attempts, used for brute-force limits (serverless-safe). */
+export const dniAttempts = pgTable(
+  "dni_attempts",
+  {
+    id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+    memberId: uuid("member_id")
+      .notNull()
+      .references(() => members.id, { onDelete: "cascade" }),
+    /** HMAC of the client IP, so raw addresses are never stored. */
+    ipHash: text("ip_hash").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("dni_attempts_member_idx").on(t.memberId, t.createdAt),
+    index("dni_attempts_ip_idx").on(t.ipHash, t.createdAt),
+  ],
+);
 
 export const tickets = pgTable(
   "tickets",
@@ -54,4 +88,4 @@ export const drawSpins = pgTable(
   ],
 );
 
-export const schema = { participants, tickets, drawSpins };
+export const schema = { members, participants, tickets, drawSpins, dniAttempts };

@@ -26,7 +26,7 @@ const blockRange = (i: number): [number, number] => [
   Math.min((i + 1) * BLOCK_SIZE, TOTAL_TICKETS),
 ];
 
-/** Public, read-only view of free and taken numbers. No access code required. */
+/** Public, read-only view of free and taken numbers. No member verification required. */
 export function AvailabilityBoard() {
   const { data, error } = useSWR<TicketsResponse>("/api/tickets", fetcher, {
     refreshInterval: 5000,

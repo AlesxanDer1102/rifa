@@ -22,6 +22,27 @@
       "when": 1792376672104,
       "tag": "0002_wealthy_electro",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792466383705,
+      "tag": "0003_drop_participant_names",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792466387690,
+      "tag": "0004_members_roster",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792466397253,
+      "tag": "0005_members_rls",
+      "breakpoints": true
     }
   ]
 }

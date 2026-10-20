@@ -50,15 +50,14 @@ Expect everyone to open the WhatsApp link at the same time, and popular numbers 
 Validated **on the server** (never trust the client): exactly 12 integers, all distinct, each in 1..1068. A DB `CHECK (number BETWEEN 1 AND 1068)` backs this up.
 
 ### 2.3 Same person registering twice
-`name_key` = normalized full name (trim, collapse spaces, lowercase, strip accents) with a **UNIQUE** index. This catches "José  Pérez" vs "jose perez".
-⚠️ It does **not** stop someone from using a fake name. See 2.4.
+`participants.member_id` is **UNIQUE**: each roster member can participate once, enforced by the database inside the atomic claim. Fake names are impossible because identity comes from the roster (see 2.4).
 
-### 2.4 Abuse / identity — **DECIDED: shared group code + admin moderation**
-There is no member roster (no names, no DNI), so per-member codes or a name picker are not possible.
-- A single shared access code (`ACCESS_CODE` env var) goes out in the WhatsApp group. It keeps out strangers if the link leaks.
-- Users type their full name, and the unique `name_key` blocks duplicates.
-- Admins release fake or duplicate registrations. Fakes show up when the S/ 10 per ticket is collected.
-- A member roster picker can be added later without schema changes to `tickets`.
+### 2.4 Abuse / identity — **DECIDED: closed member roster, personal code = DNI**
+- Only the 88 eligible SINATPSI members (the 5 "CON LICENCIA" are excluded) are in the `members` table. Raw DNIs are never stored: only `HMAC-SHA256(DNI_PEPPER, dni)`.
+- Members pick their name from a list and prove identity with their DNI (constant-time compare). A signed, httpOnly, `SameSite=Strict`, 15-minute cookie bound to the member id authorizes the claim.
+- Failed DNI attempts are limited in the database (5 per member, 30 per IP, per 15 minutes).
+- Admins can still release a participant; the member can then participate again.
+- Note: 88 members x 12 = 1056 numbers, so 12 of the 1068 numbers will remain unsold.
 
 ### 2.4.1 Public visibility — **DEFAULT: free/taken only**
 The public grid shows only free/taken, and names are visible only in the admin panel (privacy-safe default, Ley 29733).

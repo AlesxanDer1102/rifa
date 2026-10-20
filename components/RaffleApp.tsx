@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useReducer, useState, useSyncExternalStore } from "react";
 import useSWR from "swr";
-import { claimTickets, verifyAccessCode } from "@/app/actions";
+import { claimTickets, verifyDni, type VerifyDniResult } from "@/app/actions";
 import { TICKETS_PER_PERSON, TOTAL_TICKETS } from "@/lib/constants";
 import {
   parseReceipt,
@@ -13,9 +13,10 @@ import {
   subscribeReceipt,
   type StoredReceipt,
 } from "@/lib/receipt";
-import { identitySchema } from "@/lib/schemas";
+import { DNI_PATTERN } from "@/lib/dni";
 import { initialSelection, selectionReducer } from "@/lib/selection";
 import { ConfirmDialog } from "./ConfirmDialog";
+import { MemberPicker, type PickedMember } from "./MemberPicker";
 import { NumberGrid } from "./NumberGrid";
 import { RaffleHeader } from "./RaffleHeader";
 import { Receipt } from "./Receipt";
@@ -61,15 +62,14 @@ export function RaffleApp() {
   const [justClaimed, setJustClaimed] = useState(false);
   const receipt = sessionReceipt ?? storedReceipt;
 
-  // Step 1 (identity + access code)
-  const [step, setStep] = useState<"form" | "grid">("form");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [accessCode, setAccessCode] = useState("");
+  // Steps 1-2 (member picker, then DNI check)
+  const [step, setStep] = useState<"pick" | "dni" | "grid">("pick");
+  const [member, setMember] = useState<PickedMember | null>(null);
+  const [dni, setDni] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
 
-  // Step 2 (grid)
+  // Step 3 (grid)
   const [block, setBlock] = useState<"all" | number>("all");
   const [goTo, setGoTo] = useState("");
   const [goToError, setGoToError] = useState<string | null>(null);
@@ -93,35 +93,43 @@ export function RaffleApp() {
 
   const onToggle = useCallback((n: number) => dispatch({ type: "toggle", number: n }), []);
 
-  async function onContinue(e: React.FormEvent) {
-    e.preventDefault();
+  function onSelectMember(picked: PickedMember) {
+    setMember(picked);
+    setDni("");
     setFormError(null);
-    const identity = identitySchema.safeParse({ firstName, lastName });
-    if (!identity.success) {
-      setFormError(identity.error.issues[0]?.message ?? "Revisa los datos ingresados.");
-      return;
-    }
-    if (accessCode.trim() === "") {
-      setFormError("Ingresa el código de acceso.");
+    setStep("dni");
+  }
+
+  const dniErrors: Record<Exclude<VerifyDniResult, { ok: true }>["reason"], string> = {
+    invalid: "El DNI debe tener 8 dígitos.",
+    incorrect: "DNI incorrecto.",
+    locked: "Demasiados intentos fallidos. Espera 15 minutos e inténtalo nuevamente.",
+    already_participated: "Este afiliado ya participó.",
+    closed: "El registro ya está cerrado.",
+    error: "No se pudo verificar el DNI. Inténtalo nuevamente.",
+  };
+
+  async function onVerifyDni(e: React.FormEvent) {
+    e.preventDefault();
+    if (!member) return;
+    setFormError(null);
+    if (!DNI_PATTERN.test(dni)) {
+      setFormError(dniErrors.invalid);
       return;
     }
     setChecking(true);
     try {
-      const check = await verifyAccessCode(accessCode);
-      if (!check.ok) {
-        setFormError("El código de acceso no es correcto.");
+      const result = await verifyDni(member.id, dni);
+      if (!result.ok) {
+        setFormError(dniErrors[result.reason]);
+        if (result.reason === "closed") void mutate();
+        if (result.reason === "already_participated") setStep("pick");
         return;
       }
-      if (check.closed) {
-        setFormError("El registro ya está cerrado.");
-        void mutate();
-        return;
-      }
-      setFirstName(identity.data.firstName);
-      setLastName(identity.data.lastName);
+      setDni("");
       setStep("grid");
     } catch {
-      setFormError("No se pudo verificar el código. Revisa tu conexión e inténtalo nuevamente.");
+      setFormError("No se pudo verificar el DNI. Revisa tu conexión e inténtalo nuevamente.");
     } finally {
       setChecking(false);
     }
@@ -156,16 +164,10 @@ export function RaffleApp() {
     setSubmitting(true);
     setSubmitError(null);
     try {
-      const result = await claimTickets({
-        accessCode,
-        firstName,
-        lastName,
-        numbers: selection.selected,
-      });
+      const result = await claimTickets({ numbers: selection.selected });
       if (result.ok) {
         const stored: StoredReceipt = {
-          firstName: result.participant.firstName,
-          lastName: result.participant.lastName,
+          fullName: result.participant.fullName,
           numbers: result.numbers,
           createdAt: new Date().toISOString(),
         };
@@ -182,15 +184,16 @@ export function RaffleApp() {
         case "conflict":
           dispatch({ type: "conflict", taken: result.taken });
           break;
-        case "duplicate_name":
-          setStep("form");
+        case "already_participated":
+          setStep("pick");
           setFormError(
-            "Ya existe un registro con ese nombre. Si crees que es un error, comunícate con la directiva del sindicato.",
+            "Este afiliado ya participó. Si crees que es un error, comunícate con la directiva del sindicato.",
           );
           break;
-        case "bad_code":
-          setStep("form");
-          setFormError("El código de acceso no es correcto.");
+        case "unauthorized":
+          // Session expired (or never existed): ask for the DNI again, keeping the selection.
+          setStep("dni");
+          setFormError("Tu sesión expiró. Ingresa tu DNI nuevamente para confirmar.");
           break;
         case "closed":
           setSubmitError("El registro ya está cerrado.");
@@ -219,7 +222,9 @@ export function RaffleApp() {
     }
     setSessionReceipt(null);
     setJustClaimed(false);
-    setStep("form");
+    setMember(null);
+    setFormError(null);
+    setStep("pick");
   }
 
   const header = <RaffleHeader taken={data?.taken.length} participants={data?.participants} />;
@@ -264,57 +269,62 @@ export function RaffleApp() {
     );
   }
 
-  if (step === "form") {
+  if (step === "pick" || !member) {
+    return (
+      <div className="space-y-6">
+        {header}
+        <section className="mx-auto max-w-xl space-y-4 rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+          <h2 className="text-xl font-semibold">Paso 1: selecciona tu nombre</h2>
+          {formError && (
+            <p role="alert" className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-800">
+              {formError}
+            </p>
+          )}
+          <MemberPicker onSelect={onSelectMember} />
+        </section>
+        {availabilityLink}
+      </div>
+    );
+  }
+
+  if (step === "dni") {
     return (
       <div className="space-y-6">
         {header}
         <form
-          onSubmit={onContinue}
+          onSubmit={onVerifyDni}
           noValidate
           className="mx-auto max-w-xl space-y-4 rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200"
         >
-          <h2 className="text-xl font-semibold">Paso 1: tus datos</h2>
+          <h2 className="text-xl font-semibold">Paso 2: verifica tu DNI</h2>
+          <p className="text-sm text-slate-700">
+            Afiliado: <strong>{member.fullName}</strong>{" "}
+            <button
+              type="button"
+              className="underline"
+              onClick={() => {
+                setFormError(null);
+                setStep("pick");
+              }}
+            >
+              Cambiar
+            </button>
+          </p>
           <div>
-            <label htmlFor="firstName" className="mb-1 block text-sm font-medium">
-              Nombres
+            <label htmlFor="dni" className="mb-1 block text-sm font-medium">
+              DNI (8 dígitos)
             </label>
             <input
-              id="firstName"
-              className={inputClass}
-              autoComplete="given-name"
-              value={firstName}
-              maxLength={80}
-              onChange={(e) => setFirstName(e.target.value)}
-            />
-          </div>
-          <div>
-            <label htmlFor="lastName" className="mb-1 block text-sm font-medium">
-              Apellidos
-            </label>
-            <input
-              id="lastName"
-              className={inputClass}
-              autoComplete="family-name"
-              value={lastName}
-              maxLength={80}
-              onChange={(e) => setLastName(e.target.value)}
-            />
-          </div>
-          <div>
-            <label htmlFor="accessCode" className="mb-1 block text-sm font-medium">
-              Código de acceso
-            </label>
-            <input
-              id="accessCode"
-              className={inputClass}
+              id="dni"
+              type="password"
+              inputMode="numeric"
               autoComplete="off"
-              value={accessCode}
-              onChange={(e) => setAccessCode(e.target.value)}
-              aria-describedby="accessCodeHelp"
+              autoFocus
+              maxLength={8}
+              className={inputClass}
+              value={dni}
+              onChange={(e) => setDni(e.target.value.replace(/\D/g, "").slice(0, 8))}
             />
-            <p id="accessCodeHelp" className="mt-1 text-xs text-slate-500">
-              Es el código compartido en el grupo de WhatsApp del sindicato.
-            </p>
           </div>
           {formError && (
             <p role="alert" className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-800">
@@ -347,11 +357,11 @@ export function RaffleApp() {
       <section className="space-y-4 rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h2 className="text-xl font-semibold">Paso 2: elige tus {TICKETS_PER_PERSON} números</h2>
+            <h2 className="text-xl font-semibold">Paso 3: elige tus {TICKETS_PER_PERSON} números</h2>
             <p className="text-sm text-slate-600">
-              Participante: {firstName} {lastName}{" "}
-              <button type="button" className="underline" onClick={() => setStep("form")}>
-                Cambiar datos
+              Participante: {member.fullName}{" "}
+              <button type="button" className="underline" onClick={() => setStep("pick")}>
+                Cambiar participante
               </button>
             </p>
           </div>
@@ -489,7 +499,7 @@ export function RaffleApp() {
         onCancel={() => setConfirmOpen(false)}
       >
         <p>
-          {firstName} {lastName}, estos son los {TICKETS_PER_PERSON} números que registrarás:
+          {member.fullName}, estos son los {TICKETS_PER_PERSON} números que registrarás:
         </p>
         <p className="my-3 rounded-md bg-slate-50 p-3 text-center text-base font-semibold tabular-nums">
           {selection.selected.join(", ")}

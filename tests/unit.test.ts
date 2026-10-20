@@ -1,19 +1,19 @@
 import { describe, expect, it } from "vitest";
-import { cleanName, makeNameKey } from "@/lib/name";
+import { cleanName, normalizeForSearch } from "@/lib/name";
 import { claimSchema } from "@/lib/schemas";
+import { range } from "./helpers";
 
-const range = (from: number, to: number) => Array.from({ length: to - from + 1 }, (_, i) => from + i);
-const base = { firstName: "Ana María", lastName: "Pérez Soto" };
+const base = { memberId: "6f1c1f0e-8f0e-4c53-9d8e-0c4f4f0d2a11" };
 
 describe("name normalization", () => {
   it("collapses whitespace", () => {
     expect(cleanName("  José   Luis ")).toBe("José Luis");
   });
 
-  it("strips diacritics, lowercases and collapses spaces", () => {
-    expect(makeNameKey("José  Luis", "Pérez")).toBe("jose luis perez");
-    expect(makeNameKey("jose luis", "PEREZ")).toBe(makeNameKey("José Luis", "Pérez"));
-    expect(makeNameKey("Ñandú", "Muñoz")).toBe("nandu munoz");
+  it("normalizes for accent- and case-insensitive search", () => {
+    expect(normalizeForSearch("  José  LUIS Pérez ")).toBe("jose luis perez");
+    expect(normalizeForSearch("Ñandú")).toBe("nandu");
+    expect(normalizeForSearch("MUÑOZ").includes(normalizeForSearch("muno"))).toBe(true);
   });
 });
 
@@ -43,12 +43,8 @@ describe("claim schema", () => {
     expect(claimSchema.safeParse({ ...base, numbers: [...range(1, 11), "12"] }).success).toBe(false);
   });
 
-  it("validates and cleans names", () => {
-    const ok = claimSchema.safeParse({ firstName: "  Ana   María ", lastName: "Pérez", numbers: range(1, 12) });
-    expect(ok.success && ok.data.firstName).toBe("Ana María");
-    expect(claimSchema.safeParse({ firstName: "A", lastName: "Pérez", numbers: range(1, 12) }).success).toBe(false);
-    expect(
-      claimSchema.safeParse({ firstName: "x".repeat(61), lastName: "Pérez", numbers: range(1, 12) }).success,
-    ).toBe(false);
+  it("requires a valid member id", () => {
+    expect(claimSchema.safeParse({ memberId: "nope", numbers: range(1, 12) }).success).toBe(false);
+    expect(claimSchema.safeParse({ numbers: range(1, 12) }).success).toBe(false);
   });
 });

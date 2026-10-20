@@ -67,7 +67,7 @@ Check that:
    # Session pooler (5432) — migrations only
    DATABASE_URL_UNPOOLED=postgresql://postgres.<project-ref>:<password>@aws-0-sa-east-1.pooler.supabase.com:5432/postgres
 
-   ACCESS_CODE=NAVIDAD26
+   DNI_PEPPER=<32+ random characters, e.g. openssl rand -base64 48; never change after importing>
    ADMIN_PASSWORD=<a strong admin password>
    ADMIN_SESSION_SECRET=<32+ random characters>
    REGISTRATION_CLOSES_AT=2026-10-30T12:00:00-05:00
@@ -92,7 +92,11 @@ npm run db:migrate
 
 This applies the SQL files in `drizzle/` through `DATABASE_URL_UNPOOLED`:
 - `0000_*.sql` creates `participants` and `tickets`, with their constraints.
-- `0001_enable_rls.sql` enables **Row Level Security with no policies** on both tables.
+- `0001_enable_rls.sql` enables **Row Level Security with no policies** on `participants` and `tickets`.
+- `0003`/`0004` replace the name columns of `participants` with a UNIQUE `member_id` and create `members` and `dni_attempts` (`0004` fails if `participants` still has rows: run `delete from participants;` first).
+- `0005_members_rls.sql` enables RLS with no policies on `members` and `dni_attempts`.
+
+Then import the roster (see README, "Member roster and access"): `npm run import:members -- "<roster.xlsx>"`.
 
 **Why RLS matters:** Supabase automatically exposes the `public` schema through its REST API, using the public anon key. With RLS on and no policies, that API can read or change nothing. The app connects as the `postgres` role (the table owner), which bypasses RLS, so it keeps working normally.
 
@@ -104,13 +108,13 @@ Open **SQL Editor** and run:
 -- Both tables exist and RLS is on (rowsecurity = true)
 select tablename, rowsecurity
 from pg_tables
-where schemaname = 'public' and tablename in ('participants', 'tickets');
+where schemaname = 'public' and tablename in ('participants', 'tickets', 'members', 'dni_attempts');
 
 -- Should return 0 rows before launch
 select count(*) from tickets;
 ```
 
-You can also check **Table Editor**: both tables should appear, without the "RLS disabled" warning.
+You can also check **Table Editor**: every table should appear, without the "RLS disabled" warning.
 
 ---
 
@@ -120,12 +124,13 @@ You can also check **Table Editor**: both tables should appear, without the "RLS
 npm run dev
 ```
 
-Open http://localhost:3000, enter a name and the `ACCESS_CODE`, pick 12 numbers and confirm. Then check in the SQL Editor:
+Open http://localhost:3000, pick your name, enter its DNI, pick 12 numbers and confirm. Then check in the SQL Editor:
 
 ```sql
-select p.first_name, p.last_name, array_agg(t.number order by t.number) as numbers
-from participants p join tickets t on t.participant_id = p.id
-group by p.id;
+select m.full_name, array_agg(t.number order by t.number) as numbers
+from participants p join members m on m.id = p.member_id
+join tickets t on t.participant_id = p.id
+group by p.id, m.full_name;
 ```
 
 Release that test entry from `/admin` before launch, or run `delete from participants;` (tickets are removed by cascade).
@@ -139,7 +144,7 @@ Release that test entry from `/admin` before launch, or run `delete from partici
 1. In Vercel: **Project → Settings → Environment Variables**.
 2. Add for **Production** (and Preview, if you use it):
    - `DATABASE_URL` → Transaction pooler URI (6543)
-   - `ACCESS_CODE`, `ADMIN_PASSWORD`, `ADMIN_SESSION_SECRET`, `REGISTRATION_CLOSES_AT`
+   - `DNI_PEPPER`, `ADMIN_PASSWORD`, `ADMIN_SESSION_SECRET`, `REGISTRATION_CLOSES_AT`
    - `DATABASE_URL_UNPOOLED` is not needed on Vercel, because migrations run from your machine.
 3. Run the migrations from your machine against the production database (step 5), **before** the first deploy.
 4. Deploy (or redeploy, so the new env vars take effect).

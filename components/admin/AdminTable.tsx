@@ -2,21 +2,16 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { releaseAction } from "@/app/admin/actions";
+import { normalizeForSearch } from "@/lib/name";
 import { ConfirmDialog } from "../ConfirmDialog";
 
 export interface AdminRow {
   id: string;
-  firstName: string;
-  lastName: string;
+  fullName: string;
+  office: string;
   numbers: number[];
   createdAt: string;
 }
-
-const strip = (s: string) =>
-  s
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase();
 
 export function AdminTable({ rows }: { rows: AdminRow[] }) {
   const [query, setQuery] = useState("");
@@ -25,12 +20,12 @@ export function AdminTable({ rows }: { rows: AdminRow[] }) {
   const [pending, startTransition] = useTransition();
 
   const filtered = useMemo(() => {
-    const q = strip(query.trim());
+    const q = normalizeForSearch(query);
     if (!q) return rows;
     const asNumber = /^\d+$/.test(q) ? Number(q) : null;
     return rows.filter(
       (r) =>
-        strip(`${r.firstName} ${r.lastName}`).includes(q) ||
+        normalizeForSearch(r.fullName).includes(q) ||
         (asNumber !== null && r.numbers.includes(asNumber)),
     );
   }, [rows, query]);
@@ -93,7 +88,8 @@ export function AdminTable({ rows }: { rows: AdminRow[] }) {
             {filtered.map((r) => (
               <tr key={r.id}>
                 <td className="px-3 py-2 font-medium">
-                  {r.firstName} {r.lastName}
+                  {r.fullName}
+                  <span className="block text-xs font-normal text-slate-500">{r.office}</span>
                 </td>
                 <td className="px-3 py-2 tabular-nums">{r.numbers.join(", ")}</td>
                 <td className="whitespace-nowrap px-3 py-2">{r.createdAt}</td>
@@ -123,10 +119,8 @@ export function AdminTable({ rows }: { rows: AdminRow[] }) {
         {target && (
           <p>
             Se eliminará el registro de{" "}
-            <strong>
-              {target.firstName} {target.lastName}
-            </strong>{" "}
-            y se liberarán sus {target.numbers.length} números. Esta acción no se puede deshacer.
+            <strong>{target.fullName}</strong> y se liberarán sus {target.numbers.length} números.
+            Podrá volver a participar. Esta acción no se puede deshacer.
           </p>
         )}
       </ConfirmDialog>

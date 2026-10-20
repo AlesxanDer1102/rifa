@@ -4,14 +4,9 @@ export function cleanName(value: string): string {
 }
 
 /**
- * Normalized identity key for a participant: NFD, no diacritics, lowercase,
- * collapsed spaces. "José  Pérez" and "jose perez" yield the same key.
+ * Accent- and case-insensitive form for searching: NFD, no diacritics,
+ * lowercase, collapsed spaces. "José  Pérez" and "jose perez" match.
  */
-export function makeNameKey(firstName: string, lastName: string): string {
-  return `${firstName} ${lastName}`
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase()
-    .replace(/\s+/g, " ")
-    .trim();
+export function normalizeForSearch(value: string): string {
+  return cleanName(value.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase());
 }

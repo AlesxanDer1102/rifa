@@ -10,10 +10,12 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "tsx scripts/migrate.ts"
+    "db:migrate": "tsx scripts/migrate.ts",
+    "import:members": "tsx scripts/import-members.ts"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.4",
+    "exceljs": "^4.4.0",
     "next": "16.4.2",
     "postgres": "^3.4.9",
     "react": "19.3.0",

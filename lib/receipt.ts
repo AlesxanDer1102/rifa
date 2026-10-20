@@ -1,11 +1,10 @@
 export interface StoredReceipt {
-  firstName: string;
-  lastName: string;
+  fullName: string;
   numbers: number[];
   createdAt: string;
 }
 
-export const RECEIPT_KEY = "rifa-receipt-v1";
+export const RECEIPT_KEY = "rifa-receipt-v2";
 
 export function saveReceipt(receipt: StoredReceipt): void {
   try {
@@ -29,8 +28,7 @@ export function parseReceipt(raw: string | null): StoredReceipt | null {
   try {
     const value = JSON.parse(raw) as Partial<StoredReceipt>;
     if (
-      typeof value.firstName === "string" &&
-      typeof value.lastName === "string" &&
+      typeof value.fullName === "string" &&
       typeof value.createdAt === "string" &&
       Array.isArray(value.numbers) &&
       value.numbers.every((n) => typeof n === "number")

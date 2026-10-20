@@ -1,5 +1,3 @@
-import { readFileSync, readdirSync } from "node:fs";
-import path from "node:path";
 import { PGlite } from "@electric-sql/pglite";
 import { drizzle } from "drizzle-orm/pglite";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
@@ -7,29 +5,18 @@ import { schema } from "@/db/schema";
 import type { AppDb } from "@/db/types";
 import { claimTicketNumbers } from "@/lib/claim";
 import { getDrawState, listWinners, resetDraw, spin } from "@/lib/draw";
-
-const range = (from: number, to: number) => Array.from({ length: to - from + 1 }, (_, i) => from + i);
+import { insertMember, range, resetDb } from "./helpers";
 
 const client = new PGlite();
 const db = drizzle(client, { schema }) as unknown as AppDb;
-
-async function applyMigrations() {
-  const dir = path.resolve(__dirname, "../drizzle");
-  const files = readdirSync(dir).filter((f) => f.endsWith(".sql")).sort();
-  for (const file of files) {
-    const content = readFileSync(path.join(dir, file), "utf8");
-    for (const statement of content.split("--> statement-breakpoint")) {
-      if (statement.trim()) await client.exec(statement);
-    }
-  }
-}
 
 /** Deterministic picker: always the first eligible number. */
 const first = () => 0;
 
 /** Registers one participant owning the given numbers (12 required by claim validation). */
-async function seed(firstName: string, from: number) {
-  const result = await claimTicketNumbers(db, { firstName, lastName: "Prueba", numbers: range(from, from + 11) });
+async function seed(name: string, from: number, dni: string) {
+  const memberId = await insertMember(db, `${name} PRUEBA`, dni);
+  const result = await claimTicketNumbers(db, { memberId, numbers: range(from, from + 11) });
   expect(result.ok).toBe(true);
 }
 
@@ -40,10 +27,9 @@ async function spinOk(randomInt = first) {
 }
 
 beforeEach(async () => {
-  await client.exec("DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public;");
-  await applyMigrations();
-  await seed("Ana", 1); // 1..12
-  await seed("Luis", 13); // 13..24
+  await resetDb(client);
+  await seed("Ana", 1, "10000001"); // 1..12
+  await seed("Luis", 13, "10000002"); // 13..24
 });
 
 afterAll(async () => {
@@ -79,7 +65,7 @@ describe("draw (PGlite)", () => {
   it("stores the participant name snapshot and returns the eligible list before the spin", async () => {
     const res = await spinOk();
     expect(res.spin.number).toBe(1);
-    expect(res.spin.participantName).toBe("Ana Prueba");
+    expect(res.spin.participantName).toBe("Ana PRUEBA");
     expect(res.eligibleBefore).toEqual(range(1, 24));
   });
 

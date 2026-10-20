@@ -7,7 +7,8 @@ const envSchema = z.object({
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
   // Migrations only (scripts/migrate.ts, drizzle.config.ts); not needed at runtime.
   DATABASE_URL_UNPOOLED: z.preprocess(emptyToUndefined, z.string().optional()),
-  ACCESS_CODE: z.string().min(1, "ACCESS_CODE is required"),
+  // Secret key for the DNI hashes (HMAC); changing it invalidates every stored dni_hash.
+  DNI_PEPPER: z.string().min(32, "DNI_PEPPER must be at least 32 characters"),
   ADMIN_PASSWORD: z.string().min(1, "ADMIN_PASSWORD is required"),
   ADMIN_SESSION_SECRET: z.string().min(32, "ADMIN_SESSION_SECRET must be at least 32 characters"),
   REGISTRATION_CLOSES_AT: z.preprocess(

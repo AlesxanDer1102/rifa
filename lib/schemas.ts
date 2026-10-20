@@ -1,21 +1,10 @@
 import { z } from "zod";
-import { cleanName } from "./name";
+import { DNI_PATTERN } from "./dni";
 import { TICKETS_PER_PERSON, TOTAL_TICKETS } from "./constants";
 
-const nameField = (label: string) =>
-  z
-    .string({ error: `${label} es obligatorio.` })
-    .transform(cleanName)
-    .pipe(
-      z
-        .string()
-        .min(2, `${label} debe tener al menos 2 caracteres.`)
-        .max(60, `${label} no puede superar los 60 caracteres.`),
-    );
-
-export const identitySchema = z.object({
-  firstName: nameField("Los nombres"),
-  lastName: nameField("Los apellidos"),
+export const dniLoginSchema = z.object({
+  memberId: z.uuid({ error: "Selecciona tu nombre." }),
+  dni: z.string({ error: "Ingresa tu DNI." }).regex(DNI_PATTERN, "El DNI debe tener 8 dígitos."),
 });
 
 export const numbersSchema = z
@@ -29,10 +18,9 @@ export const numbersSchema = z
   .length(TICKETS_PER_PERSON, `Debes elegir exactamente ${TICKETS_PER_PERSON} números.`)
   .refine((nums) => new Set(nums).size === nums.length, "Los números no pueden repetirse.");
 
-export const claimSchema = identitySchema.extend({ numbers: numbersSchema });
-
-export const claimRequestSchema = claimSchema.extend({
-  accessCode: z.string().min(1, "Ingresa el código de acceso.").max(200),
+export const claimSchema = z.object({
+  memberId: z.uuid({ error: "Sesión inválida." }),
+  numbers: numbersSchema,
 });
 
 export type ClaimInput = z.infer<typeof claimSchema>;
