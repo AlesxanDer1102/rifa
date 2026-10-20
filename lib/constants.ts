@@ -1,4 +1,4 @@
-export const TOTAL_TICKETS = 1068;
+export const TOTAL_TICKETS = 1056;
 export const TICKETS_PER_PERSON = 12;
 /** Eligible SINATPSI members (closed roster); each participates at most once. */
 export const TOTAL_MEMBERS = 88;

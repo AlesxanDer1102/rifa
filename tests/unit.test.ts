@@ -21,7 +21,7 @@ describe("claim schema", () => {
   it("accepts exactly 12 distinct in-range integers", () => {
     const parsed = claimSchema.safeParse({ ...base, numbers: range(1, 12) });
     expect(parsed.success).toBe(true);
-    expect(claimSchema.safeParse({ ...base, numbers: [1057, ...range(1, 10), 1068] }).success).toBe(true);
+    expect(claimSchema.safeParse({ ...base, numbers: [1045, ...range(1, 10), 1056] }).success).toBe(true);
   });
 
   it("rejects 11 and 13 numbers", () => {
@@ -35,7 +35,7 @@ describe("claim schema", () => {
 
   it("rejects out-of-range numbers", () => {
     expect(claimSchema.safeParse({ ...base, numbers: [...range(1, 11), 0] }).success).toBe(false);
-    expect(claimSchema.safeParse({ ...base, numbers: [...range(1, 11), 1069] }).success).toBe(false);
+    expect(claimSchema.safeParse({ ...base, numbers: [...range(1, 11), 1057] }).success).toBe(false);
   });
 
   it("rejects non-integers", () => {

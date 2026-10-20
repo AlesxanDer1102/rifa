@@ -43,6 +43,13 @@
       "when": 1792466397253,
       "tag": "0005_members_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792470019817,
+      "tag": "0006_tickets_range_1056",
+      "breakpoints": true
     }
   ]
 }

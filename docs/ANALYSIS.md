@@ -1,6 +1,6 @@
 # Rifa Pro Navidad 2026 — Stack & Requirements Analysis
 
-Source data: `RIFAS PRO NAVIDAD V3.xlsx` (SINATPSI). 89 members x 12 tickets = **1068 tickets** (numbers 1..1068), S/ 10 each, draw on 2026-10-30.
+Source data: `RIFAS PRO NAVIDAD V3.xlsx` (SINATPSI). 88 members x 12 tickets = **1056 tickets** (numbers 1..1056), S/ 10 each, draw on 2026-10-30.
 
 ---
 
@@ -19,8 +19,8 @@ A browser can never talk to Postgres directly and safely: the connection string 
 | DB driver | `postgres` (postgres.js) via the transaction pooler, `prepare: false` | Supavisor pools connections for serverless functions; prepared statements are unsupported in transaction mode |
 | ORM / migrations | **Drizzle ORM + drizzle-kit** | Typed schema, plain SQL when needed, light on cold starts |
 | Validation | **Zod** | Same schema validates client form and server action |
-| Live grid | **Polling a CDN-cached endpoint** (SWR, ~3 s) | Vercel functions cannot hold WebSockets, and with 89 users polling is enough |
-| UI | Tailwind CSS | Fast, responsive 1068-cell grid |
+| Live grid | **Polling a CDN-cached endpoint** (SWR, ~3 s) | Vercel functions cannot hold WebSockets, and with 88 users polling is enough |
+| UI | Tailwind CSS | Fast, responsive 1056-cell grid |
 
 **Alternative considered: Neon** (serverless Postgres over HTTP, Vercel Marketplace). It would also work. We use Supabase strictly as Postgres; its Realtime push is not used, and the 3 s polling stays. RLS is enabled with no policies so the auto-generated REST API exposes nothing.
 
@@ -47,7 +47,7 @@ Expect everyone to open the WhatsApp link at the same time, and popular numbers 
 - **No temporary holds/locks.** Holds need TTL cleanup, abandoned-hold handling and a much bigger state machine. Optimistic claim + live grid + conflict recovery is simpler and correct. (We can revisit this if collisions turn out to be painful in practice.)
 
 ### 2.2 Exactly 12, valid, distinct
-Validated **on the server** (never trust the client): exactly 12 integers, all distinct, each in 1..1068. A DB `CHECK (number BETWEEN 1 AND 1068)` backs this up.
+Validated **on the server** (never trust the client): exactly 12 integers, all distinct, each in 1..1056. A DB `CHECK (number BETWEEN 1 AND 1056)` backs this up.
 
 ### 2.3 Same person registering twice
 `participants.member_id` is **UNIQUE**: each roster member can participate once, enforced by the database inside the atomic claim. Fake names are impossible because identity comes from the roster (see 2.4).
@@ -57,16 +57,16 @@ Validated **on the server** (never trust the client): exactly 12 integers, all d
 - Members pick their name from a list and prove identity with their DNI (constant-time compare). A signed, httpOnly, `SameSite=Strict`, 15-minute cookie bound to the member id authorizes the claim.
 - Failed DNI attempts are limited in the database (5 per member, 30 per IP, per 15 minutes).
 - Admins can still release a participant; the member can then participate again.
-- Note: 88 members x 12 = 1056 numbers, so 12 of the 1068 numbers will remain unsold.
+- Note: 88 members x 12 = 1056 numbers, so 12 of the 1056 numbers will remain unsold.
 
 ### 2.4.1 Public visibility — **DEFAULT: free/taken only**
 The public grid shows only free/taken, and names are visible only in the admin panel (privacy-safe default, Ley 29733).
 
 ### 2.5 Capacity
-1068 / 12 = exactly 89 participants. Once all numbers are taken, the registration form closes by itself. The last participants get whatever is left, which is expected.
+1056 / 12 = exactly 88 participants. Once all numbers are taken, the registration form closes by itself. The last participants get whatever is left, which is expected.
 
 ### 2.6 Polling cost on Vercel
-89 users x 1 req / 3 s directly to functions would burn invocations and DB queries. The fix: `GET /api/tickets` returns a compact list of taken numbers with `Cache-Control: s-maxage=2, stale-while-revalidate`. The Vercel CDN answers almost every request, and the DB is hit about once every 2 s **total**. Polling also pauses while the tab is hidden. After a successful claim the client revalidates right away.
+88 users x 1 req / 3 s directly to functions would burn invocations and DB queries. The fix: `GET /api/tickets` returns a compact list of taken numbers with `Cache-Control: s-maxage=2, stale-while-revalidate`. The Vercel CDN answers almost every request, and the DB is hit about once every 2 s **total**. Polling also pauses while the tab is hidden. After a successful claim the client revalidates right away.
 
 ### 2.7 Privacy (Peru, Ley 29733)
 See 2.4.1: the public grid shows free/taken only.
@@ -87,15 +87,15 @@ Users cannot edit or cancel after confirming (this avoids races and disputes). A
 ## 3. Requirements
 
 ### 3.1 Functional
-- **FR-1** Landing page shows the raffle info (prizes, price, draw date) and progress (`X / 1068 taken`, `Y / 89 participants`).
+- **FR-1** Landing page shows the raffle info (prizes, price, draw date) and progress (`X / 1056 taken`, `Y / 88 participants`).
 - **FR-2** The user enters **first name(s) and last name(s)** (both required, 2–60 chars) *before* picking numbers.
-- **FR-3** An interactive grid of 1068 numbers with three states: free, taken (disabled), selected by me. The user can jump to a number and filter by blocks of 100. It is responsive on mobile.
+- **FR-3** An interactive grid of 1056 numbers with three states: free, taken (disabled), selected by me. The user can jump to a number and filter by blocks of 100. It is responsive on mobile.
 - **FR-4** The user must select **exactly 12**. A counter shows `n / 12`, and confirm is enabled only at 12. There is a "random fill" helper for the remaining slots.
 - **FR-5** The grid refreshes live (≤ ~3 s) while others claim, and numbers taken by others disappear from my selection with a notice.
 - **FR-6** Confirmation is atomic. On success, show the receipt (name + 12 numbers) with a printable/screenshot view.
 - **FR-7** On conflict, highlight the lost numbers and keep the rest so the user can replace and retry.
 - **FR-8** Duplicate full names are rejected with a clear message.
-- **FR-9** Registration closes when all 1068 are taken or the deadline passes.
+- **FR-9** Registration closes when all 1056 are taken or the deadline passes.
 - **FR-10** Admin page (password from env): table of participants and their numbers, search, **CSV export**, release a participant.
 
 ### 3.2 Non-functional
@@ -109,7 +109,7 @@ Users cannot edit or cancel after confirming (this avoids races and disputes). A
 ```
 participants(id uuid pk, first_name text, last_name text,
              name_key text unique, created_at timestamptz default now())
-tickets(number int pk check (number between 1 and 1068),
+tickets(number int pk check (number between 1 and 1056),
         participant_id uuid not null references participants(id) on delete cascade,
         created_at timestamptz default now())
 ```

@@ -63,7 +63,7 @@ export const tickets = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
-    check("tickets_number_range", sql`${t.number} between 1 and 1068`),
+    check("tickets_number_range", sql`${t.number} between 1 and 1056`),
     index("tickets_participant_id_idx").on(t.participantId),
   ],
 );
@@ -84,7 +84,7 @@ export const drawSpins = pgTable(
     unique("draw_spins_prize_spin_unique").on(t.prizeRank, t.spinIndex),
     check("draw_spins_prize_rank_range", sql`${t.prizeRank} between 1 and 3`),
     check("draw_spins_spin_index_range", sql`${t.spinIndex} between 1 and 3`),
-    check("draw_spins_number_range", sql`${t.number} between 1 and 1068`),
+    check("draw_spins_number_range", sql`${t.number} between 1 and 1056`),
   ],
 );
 

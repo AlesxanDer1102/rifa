@@ -1,6 +1,6 @@
 # Rifa Pro Navidad 2026 (SINATPSI)
 
-Raffle web app: 1068 tickets (numbers 1..1068), S/ 10 each. Only the 88 eligible SINATPSI members (closed roster) can take part; each picks exactly 12 numbers, once. Prizes: TV, air fryer, cookware set. Draw date: 2026-10-30. The UI is in Spanish; code and docs are in English. See `docs/ANALYSIS.md` for the full analysis.
+Raffle web app: 1056 tickets (numbers 1..1056), S/ 10 each. Only the 88 eligible SINATPSI members (closed roster) can take part; each picks exactly 12 numbers, once. Prizes: TV, air fryer, cookware set. Draw date: 2026-10-30. The UI is in Spanish; code and docs are in English. See `docs/ANALYSIS.md` for the full analysis.
 
 Stack: Next.js (App Router) + TypeScript + Tailwind, Supabase Postgres (`postgres` driver via the transaction pooler), Drizzle ORM, Zod, SWR, Vitest.
 
@@ -81,6 +81,6 @@ Access is a closed roster instead of a shared code. The `members` table holds th
 - A claim is ONE SQL statement (`WITH p AS (INSERT participants ... RETURNING id) INSERT tickets ... SELECT unnest(...)`), so it is all-or-nothing: no partial sets and no orphan participants, without interactive transactions (a good fit for the transaction pooler).
 - On a unique violation the server inspects the constraint, re-reads which of the 12 numbers are taken, and returns `conflict` with that list; the UI keeps the rest of the selection.
 - `participants.member_id` is UNIQUE, so a second registration by the same member is rejected atomically (parallel claims included).
-- `GET /api/tickets` is CDN-cached (`s-maxage=2, stale-while-revalidate=5`), so ~89 clients polling every 3 s cost about one DB read every 2 s. Polling pauses in hidden tabs.
+- `GET /api/tickets` is CDN-cached (`s-maxage=2, stale-while-revalidate=5`), so ~88 clients polling every 3 s cost about one DB read every 2 s. Polling pauses in hidden tabs.
 
 Tests (`npm test`) run the generated migration on PGlite, including 10 parallel claims for the same number (exactly one wins).
