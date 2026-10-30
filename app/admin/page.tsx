@@ -4,8 +4,8 @@ import { getDb } from "@/db/client";
 import { AdminTable } from "@/components/admin/AdminTable";
 import { LoginForm } from "@/components/admin/LoginForm";
 import { isAdmin } from "@/lib/admin-session";
-import { listParticipants } from "@/lib/claim";
-import { TOTAL_PARTICIPANTS, TOTAL_TICKETS } from "@/lib/constants";
+import { countMembers, listParticipants } from "@/lib/claim";
+import { TOTAL_TICKETS } from "@/lib/constants";
 import { formatLima } from "@/lib/csv";
 import { logoutAction } from "./actions";
 
@@ -21,7 +21,8 @@ export default async function AdminPage() {
     );
   }
 
-  const rows = await listParticipants(getDb());
+  const db = getDb();
+  const [rows, totalMembers] = await Promise.all([listParticipants(db), countMembers(db)]);
   const serialized = rows.map((r) => ({
     id: r.id,
     fullName: r.fullName,
@@ -71,7 +72,7 @@ export default async function AdminPage() {
         </div>
       </div>
       <p className="text-sm text-slate-700">
-        Participantes: <strong>{rows.length}</strong> / {TOTAL_PARTICIPANTS} - Números ocupados:{" "}
+        Participantes: <strong>{rows.length}</strong> / {totalMembers} - Números ocupados:{" "}
         <strong>{totalTickets}</strong> / {TOTAL_TICKETS}
       </p>
       <AdminTable rows={serialized} />

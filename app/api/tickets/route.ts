@@ -13,6 +13,7 @@ export async function GET() {
         taken: snapshot.taken,
         total: TOTAL_TICKETS,
         participants: snapshot.participants,
+        totalParticipants: snapshot.totalMembers,
         closed: snapshot.taken.length >= TOTAL_TICKETS || isRegistrationClosed(),
       },
       { headers: { "Cache-Control": "public, s-maxage=2, stale-while-revalidate=5" } },

@@ -10,6 +10,7 @@ interface TicketsResponse {
   taken: number[];
   total: number;
   participants: number;
+  totalParticipants: number;
   closed: boolean;
 }
 
@@ -66,7 +67,7 @@ export function AvailabilityBoard() {
 
   return (
     <div className="space-y-4 pb-24">
-      <RaffleHeader taken={takenCount} participants={data?.participants} />
+      <RaffleHeader taken={takenCount} participants={data?.participants} totalParticipants={data?.totalParticipants} />
 
       <section className="space-y-4 rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
         <div className="flex flex-wrap items-center justify-between gap-2">

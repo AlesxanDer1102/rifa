@@ -3,20 +3,19 @@ import {
   PRIZES,
   TICKET_PRICE_PEN,
   TICKETS_PER_PERSON,
-  TOTAL_PARTICIPANTS,
   TOTAL_TICKETS,
 } from "@/lib/constants";
 import Image from "next/image";
 import { DrawRules } from "./DrawRules";
 
-function Progress({ label, value, max }: { label: string; value: number | undefined; max: number }) {
-  const pct = value === undefined ? 0 : Math.min(100, Math.round((value / max) * 100));
+function Progress({ label, value, max }: { label: string; value: number | undefined; max: number | undefined }) {
+  const pct = value === undefined || !max ? 0 : Math.min(100, Math.round((value / max) * 100));
   return (
     <div>
       <div className="flex justify-between text-sm">
         <span className="font-medium">{label}</span>
         <span className="tabular-nums text-slate-600">
-          {value ?? "-"} / {max}
+          {value ?? "-"} / {max ?? "-"}
         </span>
       </div>
       <div
@@ -33,7 +32,15 @@ function Progress({ label, value, max }: { label: string; value: number | undefi
   );
 }
 
-export function RaffleHeader({ taken, participants }: { taken?: number; participants?: number }) {
+export function RaffleHeader({
+  taken,
+  participants,
+  totalParticipants,
+}: {
+  taken?: number;
+  participants?: number;
+  totalParticipants?: number;
+}) {
   return (
     <header className="no-print rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
       <div className="flex items-center gap-4 sm:gap-6">
@@ -66,7 +73,7 @@ export function RaffleHeader({ taken, participants }: { taken?: number; particip
       </div>
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <Progress label="Números ocupados" value={taken} max={TOTAL_TICKETS} />
-        <Progress label="Participantes" value={participants} max={TOTAL_PARTICIPANTS} />
+        <Progress label="Participantes" value={participants} max={totalParticipants} />
       </div>
     </header>
   );

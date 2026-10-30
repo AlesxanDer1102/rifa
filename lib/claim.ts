@@ -126,14 +126,22 @@ async function findTaken(db: AppDb, numbers: number[]): Promise<number[]> {
 export interface TicketsSnapshot {
   taken: number[];
   participants: number;
+  /** Size of the members roster: the maximum possible number of participants. */
+  totalMembers: number;
+}
+
+export async function countMembers(db: AppDb): Promise<number> {
+  const [row] = await db.select({ value: count() }).from(members);
+  return Number(row?.value ?? 0);
 }
 
 export async function getTicketsSnapshot(db: AppDb): Promise<TicketsSnapshot> {
-  const [rows, [counted]] = await Promise.all([
+  const [rows, [counted], totalMembers] = await Promise.all([
     db.select({ number: tickets.number }).from(tickets).orderBy(tickets.number),
     db.select({ value: count() }).from(participants),
+    countMembers(db),
   ]);
-  return { taken: rows.map((r) => r.number), participants: Number(counted?.value ?? 0) };
+  return { taken: rows.map((r) => r.number), participants: Number(counted?.value ?? 0), totalMembers };
 }
 
 export interface ParticipantWithNumbers {

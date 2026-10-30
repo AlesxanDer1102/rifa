@@ -25,6 +25,7 @@ interface TicketsResponse {
   taken: number[];
   total: number;
   participants: number;
+  totalParticipants: number;
   closed: boolean;
 }
 
@@ -227,7 +228,7 @@ export function RaffleApp() {
     setStep("pick");
   }
 
-  const header = <RaffleHeader taken={data?.taken.length} participants={data?.participants} />;
+  const header = <RaffleHeader taken={data?.taken.length} participants={data?.participants} totalParticipants={data?.totalParticipants} />;
   const availabilityLink = (
     <div className="no-print mx-auto max-w-xl">
       <Link

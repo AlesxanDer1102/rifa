@@ -57,6 +57,8 @@ describe("claimTicketNumbers (PGlite)", () => {
     expect(await counts()).toEqual({ participants: 1, tickets: 12 });
     const snapshot = await getTicketsSnapshot(db);
     expect(snapshot.taken).toEqual(range(1, 12));
+    expect(snapshot.participants).toBe(1);
+    expect(snapshot.totalMembers).toBe(2);
   });
 
   it("rejects a second participation by the same member and keeps the first intact", async () => {

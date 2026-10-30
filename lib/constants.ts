@@ -1,8 +1,7 @@
-export const TOTAL_TICKETS = 1056;
+export const TOTAL_TICKETS = 1068;
 export const TICKETS_PER_PERSON = 12;
 /** Eligible SINATPSI members (closed roster); each participates at most once. */
-export const TOTAL_MEMBERS = 88;
-export const TOTAL_PARTICIPANTS = TOTAL_MEMBERS;
+export const TOTAL_MEMBERS = 89;
 /** Failed DNI attempts allowed per member / per client IP within the window. */
 export const DNI_MAX_ATTEMPTS_PER_MEMBER = 5;
 export const DNI_MAX_ATTEMPTS_PER_IP = 30;
